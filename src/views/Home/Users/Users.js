@@ -282,7 +282,8 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState(null);
-  const [userDetailsVisible, setUserDetailsVisible] = useState(false); // State to manage visibility of user details
+  const [expandedRows, setExpandedRows] = useState([]);
+  const [userDetailsVisible, setUserDetailsVisible] = useState({}); // State to manage visibility of user details
   const [userInfo, setUserInfo] = useState(null); // State to manage user info
   const [memberData, setMemberData] = useState(null); // Add this line to define memberData state
 
@@ -315,10 +316,10 @@ const Users = () => {
     {
       title: '', data: 'toggle', render: (item) => (
         <button className="btn btn-link" onClick={() => handleRowExpand(item.id)}>
-          <FontAwesomeIcon icon={userDetailsVisible[item.id] ? faAngleUp : faAngleDown} />
+          <FontAwesomeIcon icon={expandedRows.includes(item.id) ? faAngleUp : faAngleDown} />
         </button>
       )
-  },
+    },
     {
       title: 'Image', data: 'image', render: (item) => (
         <img src={item.image ? `http://nanabarsamaj-001-site1.htempurl.com/GetImage/${item.image}` : defaultImage} alt="User" style={{ width: '80px', height: '80px', borderRadius: '50%' }} />
@@ -428,48 +429,45 @@ const Users = () => {
   };
 
 
-   const handleToggleDetails = async (userId) => {
+  const handleRowExpand = async (userId) => {
     try {
-      if (userDetailsVisible[userId]) {
-        setUserDetailsVisible({ ...userDetailsVisible, [userId]: false });
+      if (expandedRows.includes(userId)) {
+        // If the user row is already expanded, hide member data
+        setExpandedRows(expandedRows.filter(id => id !== userId));
       } else {
-        const memberData = await getMemberData(userId);
-        // Set memberData to state or do whatever you want with it
-        setUserDetailsVisible({ ...userDetailsVisible, [userId]: true });
+        // If the user row is collapsed, fetch and display member data
+        const token = localStorage.getItem('adminToken');
+        const memberResponse = await axios.post("http://nanabarsamaj-001-site1.htempurl.com/api/Member/GetAll", {
+          user_id: userId,
+          page_number: null,
+          page_size: null,
+          age: null,
+          education: null,
+          occupation: null,
+          gender: null,
+          you_live_abroad: null,
+          marital: null,
+          height: null,
+          weight: null,
+          interested_matrimonial: null,
+          lookup_village_id: null,
+          lookup_pragatimandal_id: null,
+          is_admin_approve: null
+        }, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        // Update memberData state with fetched member data and log the updated state
+        setMemberData(memberResponse.data.data);
+        console.log("Member data:", memberResponse.data.data);
+
+        // Expand the user row and update expandedRows state
+        setExpandedRows([...expandedRows, userId]);
       }
     } catch (error) {
-      console.error('Error toggling user details:', error);
-    }
-  };
-
-  const getMemberData = async (userId) => {
-    try {
-      const token = localStorage.getItem('adminToken');
-      const memberResponse = await axios.post("http://nanabarsamaj-001-site1.htempurl.com/api/Member/GetAll", {
-        user_id: userId,
-        page_number: null,
-        page_size: null,
-        age: null,
-        education: null,
-        occupation: null,
-        gender: null,
-        you_live_abroad: null,
-        marital: null,
-        height: null,
-        weight: null,
-        interested_matrimonial: null,
-        lookup_village_id: null,
-        lookup_pragatimandal_id: null,
-        is_admin_approve: null
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      return memberResponse.data.data; // Return member data
-    } catch (error) {
-      console.error('Error fetching member data:', error);
-      throw error;
+      console.error('Error handling row expand:', error);
     }
   };
 
@@ -506,7 +504,46 @@ const Users = () => {
                 </tr>
               </thead>
               <tbody>
-               
+                {userData.map((user, index) => (
+                  <React.Fragment key={index}>
+                    <tr>
+                      {columns.map((column, columnIndex) => (
+                        <td key={columnIndex}>
+                          {column.data === 'toggle' ? (
+                            <button className="btn btn-secondary" onClick={() => handleRowExpand(user.id)}>
+                              {expandedRows.includes(user.id) ? 'Hide Details' : 'Show Details'}
+                            </button>
+                          ) : (
+                            column.render ? column.render(user) : user[column.data]
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                    {expandedRows.includes(user.id) && memberData[user.id] ? (
+                      <table className="table table-bordered">
+                        <thead>
+                          <tr>
+                            <th>Relation Type</th>
+                            <th>Name</th>
+                            {/* Add other headers as per your requirement */}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {memberData[user.id].map((member, index) => (
+                            <tr key={index}>
+                              <td>{member.relation_type}</td>
+                              <td>{member.name}</td>
+                              {/* Add other cells with member details as per your requirement */}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <p>No member data available for this user.</p>
+                    )}
+
+                  </React.Fragment>
+                ))}
               </tbody>
             </table>
           )}
@@ -518,6 +555,7 @@ const Users = () => {
           onClose={() => setShowEditForm(false)}
         />
       )}
+
       {showDeleteConfirmation && userInfo && (
         <div className="modal show" tabIndex="-1" role="dialog" style={{ display: showDeleteConfirmation ? 'block' : 'none' }}>
           <div className="modal-dialog" role="document">
