@@ -11,7 +11,7 @@ const UserInfo = () => {
     const getUserById = async (userId) => {
       try {
         const token = localStorage.getItem('adminToken');
-        const response = await axios.get(`http://nanabarsamaj-001-site1.htempurl.com/api/User/GetById?id=${userId}`, {
+        const response = await axios.get(`https://expodersfour-001-site1.ltempurl.com/api/User/GetById?id=${userId}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -72,21 +72,21 @@ const UserInfo = () => {
           <div>{loading ? 'Loading...' : (user ? user.sakh_name : 'User not found')}</div>
         </div>
         <div className="mb-3">
-          <label style={labelStyle}>Is Active:</label>
-          <div>{loading ? 'Loading...' : (user ? user.is_active.toString() : 'User not found')}</div>
-        </div>
-        <div className="mb-3">
-          <label style={labelStyle}>Is Verify:</label>
-          <div>{loading ? 'Loading...' : (user ? user.is_verify.toString() : 'User not found')}</div>
-        </div>
-        <div className="mb-3">
-          <label style={labelStyle}>Is Admin Approve:</label>
-          <div>{loading ? 'Loading...' : (user ? user.is_admin_approve.toString() : 'User not found')}</div>
-        </div>
-        <div className="mb-3">
-          <label style={labelStyle}>Is Karobari Member:</label>
-          <div>{loading ? 'Loading...' : (user ? user.is_karobari_member.toString() : 'User not found')}</div>
-        </div>
+  <label style={labelStyle}>Is Active:</label>
+  <div>{loading ? 'Loading...' : (user ? (user.is_active ? 'Active' : 'Inactive') : 'User not found')}</div>
+</div>
+<div className="mb-3">
+  <label style={labelStyle}>Is Verify:</label>
+  <div>{loading ? 'Loading...' : (user ? (user.is_verify !== null ? (user.is_verify ? 'Verified' : 'Unverified') : '-') : 'User not found')}</div>
+</div>
+<div className="mb-3">
+  <label style={labelStyle}>Is Admin Approve:</label>
+  <div>{loading ? 'Loading...' : (user ? (user.is_admin_approve !== null ? (user.is_admin_approve ? 'Approved' : 'Unapproved') : '-') : 'User not found')}</div>
+</div>
+<div className="mb-3">
+  <label style={labelStyle}>Is Karobari Member:</label>
+  <div>{loading ? 'Loading...' : (user ? user.is_karobari_member.toString() : 'User not found')}</div>
+</div>
         <div className="mb-3">
           <label style={labelStyle}>Role Name:</label>
           <div>{loading ? 'Loading...' : (user ? user.role_name : 'User not found')}</div>

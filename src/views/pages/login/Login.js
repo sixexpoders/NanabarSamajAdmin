@@ -50,7 +50,7 @@ const Login = () => {
 
     try {
       debugger
-      const response = await axios.post('http://nanabarsamaj-001-site1.htempurl.com/api/Admin/Auth/Login', data);
+      const response = await axios.post('https://expodersfour-001-site1.ltempurl.com/api/Admin/Auth/Login', data);
 
       if (response.data.success) {
         // Store admin email upon successful login

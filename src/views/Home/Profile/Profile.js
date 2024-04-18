@@ -10,7 +10,7 @@ const Profile = () => {
       try {
         const token = localStorage.getItem('adminToken');
         const adminEmail = localStorage.getItem('adminEmail');
-        const response = await axios.get('http://nanabarsamaj-001-site1.htempurl.com/api/admin/Lookup/GetUsers', {
+        const response = await axios.get('https://expodersfour-001-site1.ltempurl.com/api/admin/Lookup/GetUsers', {
           headers: {
             Authorization: `Bearer ${token}`
           }

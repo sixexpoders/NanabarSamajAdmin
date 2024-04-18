@@ -35,7 +35,7 @@ const AppHeaderDropdown = () => {
       try {
         const token = localStorage.getItem('adminToken');
         const adminEmail = localStorage.getItem('adminEmail');
-        const response = await axios.get('http://nanabarsamaj-001-site1.htempurl.com/api/admin/Lookup/GetUsers', {
+        const response = await axios.get('https://expodersfour-001-site1.ltempurl.com/api/admin/Lookup/GetUsers', {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -55,7 +55,7 @@ const AppHeaderDropdown = () => {
     <CDropdown variant="nav-item">
       <CDropdownToggle placement="bottom-end" className="py-0 pe-0" caret={false}>
         {userData && userData.image ? (
-          <img src={`http://nanabarsamaj-001-site1.htempurl.com/GetImage/${userData.image}`} alt="User" style={{ borderRadius: '50%', width: '30px', height: '30px', marginTop: '4px' }} />
+          <img src={`https://expodersfour-001-site1.ltempurl.com/GetImage/${userData.image}`} alt="User" style={{ borderRadius: '50%', width: '30px', height: '30px', marginTop: '4px' }} />
         ) : (
           "No Image"
         )}

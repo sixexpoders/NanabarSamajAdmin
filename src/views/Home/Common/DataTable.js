@@ -1,6 +1,8 @@
+// CommonDataTable.js
+
 import React, { useState } from 'react';
 
-const CommonDataTable = ({ data, columns, className, entitiesPerPageOptions, defaultEntitiesPerPage }) => {
+const CommonDataTable = ({ data, columns, className, entitiesPerPageOptions, defaultEntitiesPerPage, renderRow }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortedColumn, setSortedColumn] = useState('');
@@ -109,13 +111,9 @@ const CommonDataTable = ({ data, columns, className, entitiesPerPageOptions, def
           </thead>
           <tbody>
             {paginatedData.map((item, rowIndex) => (
-              <tr key={rowIndex}>
-                {columns.map((column, colIndex) => (
-                  <td key={colIndex}>
-                    {column.render ? column.render(item) : item[column.data] ? item[column.data].toString() : ''}
-                  </td>
-                ))}
-              </tr>
+              <React.Fragment key={rowIndex}>
+                {renderRow(item)}
+              </React.Fragment>
             ))}
           </tbody>
         </table>

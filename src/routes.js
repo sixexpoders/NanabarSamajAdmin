@@ -1,9 +1,14 @@
   import React from 'react'
+import Newsinfo from './views/Home/Info/NewsInfo'
 
   const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
   const Users = React.lazy(() => import('./views/Home/Users/Users'))
   const Location = React.lazy(() => import('./views/Home/Location/Location'))
-  const Info = React.lazy(() => import('./views/Home/Info/UserInfo'))
+  const MemberAdd = React.lazy(() => import('./views/Home/Member/Add'))
+  const MemberUpdate = React.lazy(() => import('./views/Home/Member/Update'))
+  const UserInfo = React.lazy(() => import('./views/Home/Info/UserInfo'))
+  const NewsInfo = React.lazy(() => import('./views/Home/Info/NewsInfo'))
+  const MemberInfo = React.lazy(() => import('./views/Home/Info/MemberInfo'))
   const News = React.lazy(() => import('./views/Home/News/News'))
   const Profile = React.lazy(() => import('./views/Home/Profile/Profile'))
 
@@ -58,9 +63,13 @@
     { path: '/dashboard', name: 'Dashboard', element: Dashboard },
     { path: '/Home/Users', name: 'Users', element: Users },
     { path: '/Home/Location', name: 'Location', element: Location },
+    { path: '/Home/Member/:id', name: 'Add', element: MemberAdd },
+    { path: '/Home/Member/:userId/:memberId', name: 'Update', element: MemberUpdate },
     { path: '/Home/Profile', name: 'Profile', element: Profile },
     { path: '/Home/News', name: 'News', element: News },
-    { path: '/Home/Info/:id', name: 'UserInfo', element: Info },
+    { path: '/Home/UserInfo/:id', name: 'UserInfo', element: UserInfo },
+    { path: '/Home/NewsInfo/:id', name: 'NewsInfo', element: NewsInfo },
+    { path: '/Home/MemberInfo/:id', name: 'MemberInfo', element: MemberInfo },
     { path: '/base', name: 'Base', element: Cards, exact: true },
     { path: '/base/accordion', name: 'Accordion', element: Accordion },
     { path: '/base/breadcrumbs', name: 'Breadcrumbs', element: Breadcrumbs },
