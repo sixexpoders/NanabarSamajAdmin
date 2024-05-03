@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios'; // Import Axios for HTTP requests
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import {
   CAvatar,
   CBadge,
@@ -29,6 +29,7 @@ import CIcon from '@coreui/icons-react';
 
 const AppHeaderDropdown = () => {
   const [userData, setUserData] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -40,7 +41,7 @@ const AppHeaderDropdown = () => {
             Authorization: `Bearer ${token}`
           }
         });
-      
+
         const filteredUserData = response.data.data.find(user => user.email === adminEmail);
         setUserData(filteredUserData);
       } catch (error) {
@@ -50,6 +51,14 @@ const AppHeaderDropdown = () => {
 
     fetchUserData();
   }, []);
+
+  const handleLogout = () => {
+    // Clear localStorage
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminEmail');
+    // Redirect to login page
+    navigate('/login');
+  };
 
   return (
     <CDropdown variant="nav-item">
@@ -66,12 +75,12 @@ const AppHeaderDropdown = () => {
           <CIcon icon={cilUser} className="me-2" />
           Profile
         </CDropdownItem>
-        <CDropdownItem as={Link} to="/Forgot-Password">
+        <CDropdownItem as={Link} to="/Home/Change-Password">
           <CIcon icon={cilLockLocked} className="me-2" />
-          Forgot Password
+          Change Password
         </CDropdownItem>
         <CDropdownDivider />
-        <CDropdownItem as={Link} to="/Login">
+        <CDropdownItem onClick={handleLogout} style={{ cursor: 'pointer' }}>
           <CIcon icon={cilAccountLogout} className="me-2" />
           Log Out
         </CDropdownItem>

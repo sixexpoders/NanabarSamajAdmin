@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'
 import CommonDataTable from '../Common/DataTable'; // Assuming CommonDataTable is in the same directory
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner, faEdit, faTrash, faInfo, faAdd, faSignIn } from '@fortawesome/free-solid-svg-icons';
+import { faSpinner, faEdit, faTrash, faInfo, faAdd, faSignIn, faExpand, faPlus } from '@fortawesome/free-solid-svg-icons';
 import defaultImage from '../../../assets/images/profile.png';
 import { Link } from 'react-router-dom';
 import updateMemberForm from '../Member/Update';
 import { faCaretUp, faCaretDown } from '@fortawesome/free-solid-svg-icons';
+
 //#region update 
 const UpdateForm = ({ user, onClose, refreshUserData }) => {
   const [successMessage, setSuccessMessage] = useState('');
@@ -47,13 +49,50 @@ const UpdateForm = ({ user, onClose, refreshUserData }) => {
     updated_by_id: user.updated_by_id || '', // Assuming this field is available
     updated_on: user.updated_on || '', // Assuming this field is available
   });
-
+  const [oldImage, setOldImage] = useState(null);
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
   const [maritales, setMaritales] = useState([]);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false); // New state for success message visibility
 
+  useEffect(() => {
+    // Fetch the image
+    if (user.image) {
+      axios.get(`https://expodersfour-001-site1.ltempurl.com/GetImage/${user.image}`, { responseType: 'arraybuffer' })
+        .then(response => {
+          const blob = new Blob([response.data], { type: 'image/jpeg' }); // Create a Blob from the response data
+          const reader = new FileReader();
+          reader.readAsDataURL(blob); // Convert the blob to a data URL
+          reader.onloadend = () => {
+            setOldImage(reader.result); // Set the data URL as the source for the image
+          };
+        })
+        .catch(error => {
+          console.error('Error fetching image:', error);
+        });
+    }
+  }, [user.image]);
+
+  const handleImageClick = () => {
+    // Trigger click on file input when image is clicked
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+      fileInput.click();
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setFormData({ ...formData, image: file });
+
+    // Display the selected image in the image box
+    const reader = new FileReader();
+    reader.onload = () => {
+      setOldImage(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
 
 
   useEffect(() => {
@@ -132,7 +171,10 @@ const UpdateForm = ({ user, onClose, refreshUserData }) => {
     }
   };
 
-
+  const handleFileInputChange = (e) => {
+    const file = e.target.files[0]; // Get the selected file
+    setFormData({ ...formData, image: file }); // Update the form data with the selected file
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -162,120 +204,132 @@ const UpdateForm = ({ user, onClose, refreshUserData }) => {
   };
 
   return (
-    <div className="modal show" tabIndex="-1" role="dialog" style={{ display: 'block' }}>
-      <div className="modal-dialog" role="document">
+    <div className="modal show" tabIndex="-1" role="dialog" style={{ display: 'block', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+      <div className="modal-dialog modal-xl" role="document">
         <div className="modal-content">
           <div className="modal-header">
             <h5 className="modal-title">Update User</h5>
             <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
           <div className="modal-body">
-            {showSuccessMessage && ( // Show success message if showSuccessMessage is true
+            {showSuccessMessage && (
               <div className="alert alert-success" role="alert">
                 User updated successfully
               </div>
             )}
             <form onSubmit={handleSubmit}>
-              <div className="mb-3">
-                <label className="form-label">Image</label>
-                <input type="file" className="form-control" name="image" value={formData.image} onChange={handleInputChange} />
-              </div>
-              <div className="mb-3">
-                <label className="form-label">User name</label>
-                <input type="text" className="form-control" name="name" value={formData.name} onChange={handleInputChange} />
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Surname</label>
-                <input type="text" className="form-control" name="surname" value={formData.surname} onChange={handleInputChange} />
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Father's Name</label>
-                <input type="text" className="form-control" name="father_name" value={formData.father_name} onChange={handleInputChange} />
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Mother's Name</label>
-                <input type="text" className="form-control" name="mother_name" value={formData.mother_name} onChange={handleInputChange} />
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Mobile Number</label>
-                <input type="text" className="form-control" name="mobile_number" value={formData.mobile_number} onChange={handleInputChange} />
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Email</label>
-                <input type="text" className="form-control" name="email" value={formData.email} onChange={handleInputChange} />
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Password</label>
-                <input type="password" className="form-control" name="password" value={formData.password} onChange={handleInputChange} />
-              </div>
+              <div className="row">
+                <div className="col-md-3 d-flex justify-content-center align-items-center">
+                  <div className="mb-3" style={{ width: '150px', height: '150px', border: '1px solid black', cursor: 'pointer' }}>
+                    <label className="form-label" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}></label>
+                    <input id="fileInput" type="file" className="form-control" name="image" onChange={handleFileChange} style={{ display: 'none' }} />
+                    <div className="image-container" style={{ width: '100%', height: '100%', overflow: 'hidden' }} onClick={handleImageClick}
+                      onMouseEnter={(e) => { e.currentTarget.firstChild.style.filter = 'brightness(50%)' }}
+                      onMouseLeave={(e) => { e.currentTarget.firstChild.style.filter = 'brightness(100%)' }}>
+                      {oldImage && (
+                        <img src={oldImage} alt="Current Image" className="img-fluid" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="col-md-3">
+                  <div className="mb-3">
+                    <label className="form-label">User name</label>
+                    <input type="text" className="form-control" name="name" value={formData.name} onChange={handleInputChange} />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Surname</label>
+                    <input type="text" className="form-control" name="surname" value={formData.surname} onChange={handleInputChange} />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Father's Name</label>
+                    <input type="text" className="form-control" name="father_name" value={formData.father_name} onChange={handleInputChange} />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Mother's Name</label>
+                    <input type="text" className="form-control" name="mother_name" value={formData.mother_name} onChange={handleInputChange} />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Marital</label>
+                    <select className="form-control" name="lookup_marital_id" value={formData.lookup_marital_id} onChange={handleInputChange}>
+                      <option value="">Select marital</option>
+                      {maritales.map(marital => (
+                        <option key={marital.id} value={marital.id}>{marital.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="col-md-3">
+                  <div className="mb-3">
+                    <label className="form-label">Mobile Number</label>
+                    <input type="text" className="form-control" name="mobile_number" value={formData.mobile_number} onChange={handleInputChange} />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Email</label>
+                    <input type="text" className="form-control" name="email" value={formData.email} onChange={handleInputChange} />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Password</label>
+                    <input type="password" className="form-control" name="password" value={formData.password} onChange={handleInputChange} />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Gender</label>
+                    <select className="form-select" name="gender" value={formData.gender} onChange={handleInputChange}>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Is Admin Approve</label>
+                    <select className="form-control" name="is_admin_approve" value={formData.is_admin_approve} onChange={handleInputChange}>
+                      <option value={true}>Yes</option>
+                      <option value={false}>No</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="col-md-3">
+                  <div className="mb-3">
+                    <label className="form-label">Address</label>
+                    <input type="text" className="form-control" name="address" value={formData.address} onChange={handleInputChange} />
+                  </div>
 
-              <div className="mb-3">
-                <label className="form-label">Gender</label>
-                <select
-                  className="form-select"
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleInputChange}
-                >
-                  <option value="Male">Male</option>
-                  <option
-                    value="Female">Female</option>
-                </select>
-              </div>
+                  <div className="mb-3">
+                    <label className="form-label">Country</label>
+                    <select className="form-control" name="lookup_country_id" value={formData.lookup_country_id} onChange={handleInputChange}>
+                      <option value="">Select Country</option>
+                      {countries.map(country => (
+                        <option key={country.id} value={country.id}>{country.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">State</label>
+                    <select className="form-control" name="lookup_state_id" value={formData.lookup_state_id} onChange={handleInputChange}>
+                      <option value="">Select State</option>
+                      {states.map(state => (
+                        <option key={state.id} value={state.id}>{state.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">City</label>
+                    <select className="form-control" name="lookup_city_id" value={formData.lookup_city_id} onChange={handleInputChange}>
+                      <option value="">Select City</option>
+                      {cities.map(city => (
+                        <option key={city.id} value={city.id}>{city.name}</option>
+                      ))}
+                    </select>
+                  </div>
 
-              <div className="mb-3">
-                <label className="form-label">Address</label>
-                <input type="text" className="form-control" name="address" value={formData.address} onChange={handleInputChange} />
+                </div>
               </div>
-              <div className="mb-3">
-                <label className="form-label">Marital</label>
-                <select className="form-control" name="lookup_marital_id" value={formData.lookup_marital_id} onChange={handleInputChange}>
-                  <option value="">Select marital</option>
-                  {maritales.map(marital => (
-                    <option key={marital.id} value={marital.id}>{marital.name}</option>
-                  ))}
-                </select>
+              <div className="row">
+                <div className="col-md-12 d-flex justify-content-end"> {/* Aligns the button to the right */}
+                  <button type="submit" className="btn btn-primary">Update</button>
+                </div>
               </div>
-              <div className="mb-3">
-                <label className="form-label">Country</label>
-                <select className="form-control" name="lookup_country_id" value={formData.lookup_country_id} onChange={handleInputChange}>
-                  <option value="">Select Country</option>
-                  {countries.map(country => (
-                    <option key={country.id} value={country.id}>{country.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-3">
-                <label className="form-label">State</label>
-                <select className="form-control" name="lookup_state_id" value={formData.lookup_state_id} onChange={handleInputChange}>
-                  <option value="">Select State</option>
-                  {states.map(state => (
-                    <option key={state.id} value={state.id}>{state.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-3">
-                <label className="form-label">City</label>
-                <select className="form-control" name="lookup_city_id" value={formData.lookup_city_id} onChange={handleInputChange}>
-                  <option value="">Select City</option>
-                  {cities.map(city => (
-                    <option key={city.id} value={city.id}>{city.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Is Admin Approve</label>
-                <select className="form-control" name="is_admin_approve" value={formData.is_admin_approve} onChange={handleInputChange}>
-                  <option value={true}>Yes</option>
-                  <option value={false}>No</option>
-                </select>
-              </div>
-
-
-              <button type="submit" className="btn btn-primary">Update</button>
             </form>
           </div>
-
         </div>
       </div>
     </div>
@@ -300,11 +354,11 @@ const AddForm = ({ onClose, refreshUserData }) => {
     lookup_sakh_id: '',
     password: '',
     image: '',
-    is_terms: true,
-    is_active: true,
-    is_admin_approve: true,
+    is_terms: false,
+    is_active: false,
+    is_admin_approve: false,
     is_karobari_member: false, // Set to false
-    is_verify: true,
+    is_verify: false,
     lookup_role_id: '', // Assuming this field is provided when using the form
   });
 
@@ -312,6 +366,14 @@ const AddForm = ({ onClose, refreshUserData }) => {
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
   const [SakhData, setSakhData] = useState([]);
+
+  const [imageFile, setImageFile] = useState(null);
+
+  // Function to handle image selection
+  const handleImageChange = (e) => {
+    setImageFile(e.target.files[0]);
+    setFormData({ ...formData, image: e.target.files[0] });
+  };
 
   useEffect(() => {
     // Fetch countries
@@ -361,8 +423,12 @@ const AddForm = ({ onClose, refreshUserData }) => {
   }, []);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    if (name === 'lookup_country_id') {
+    const { name, value, type, checked } = e.target;
+    // If the input type is checkbox, update the checked state directly
+    if (type === 'checkbox') {
+      setFormData({ ...formData, [name]: checked });
+    }
+    else if (name === 'lookup_country_id') {
       // If country is changed
       if (value === '') {
         // If country is unselected, clear state and city
@@ -407,114 +473,138 @@ const AddForm = ({ onClose, refreshUserData }) => {
   };
 
   return (
-    <div className="modal show" tabIndex="-1" role="dialog" style={{ display: 'block' }}>
-      <div className="modal-dialog" role="document">
-        <div className="modal-content">
-          <div className="modal-header">
+    <div className="modal show" tabIndex="-1" role="dialog" style={{ display: 'block', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+      <div className="modal-dialog modal-xl" role="document" >
+        <div className="modal-content" >
+          <div className="modal-header" >
             <h5 className="modal-title">Register User</h5>
             <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
           <div className="modal-body">
-            <form onSubmit={handleSubmit}>
-              <div className="mb-3">
-                <label className="form-label">Image</label>
-                <input type="file" className="form-control" name="image" value={formData.image} onChange={handleInputChange} required />
+            <form onSubmit={handleSubmit} >
+              <div className="row">
+                <div className="col-md-3 d-flex justify-content-center align-items-center">
+                  <div className="mb-3" style={{ width: '150px', height: '150px', border: '1px solid white', cursor: 'pointer', position: 'relative' }}>
+                    <label className="form-label" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}></label>
+                    <input id="imageInput" type="file" className="form-control" name="image" onChange={handleImageChange} style={{ display: 'none' }} />
+                    <div className="image-container" style={{ width: '100%', height: '100%', overflow: 'hidden' }} onClick={() => document.getElementById('imageInput').click()}
+                      onMouseEnter={(e) => { e.currentTarget.firstChild.style.filter = 'brightness(50%)' }}
+                      onMouseLeave={(e) => { e.currentTarget.firstChild.style.filter = 'brightness(100%)' }}>
+                      {imageFile ? (
+                        <img src={URL.createObjectURL(imageFile)} alt="Selected Image" className="img-fluid" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <FontAwesomeIcon icon={faPlus} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="col-md-3">
+                  <div className="mb-3">
+                    <label className="form-label">Name</label>
+                    <input type="text" className="form-control" name="name" value={formData.name} onChange={handleInputChange} required />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Surname</label>
+                    <input type="text" className="form-control" name="surname" value={formData.surname} onChange={handleInputChange} required />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Father's Name</label>
+                    <input type="text" className="form-control" name="father_name" value={formData.father_name} onChange={handleInputChange} required />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Mobile Number</label>
+                    <input type="text" className="form-control" name="mobile_number" value={formData.mobile_number} onChange={handleInputChange} required />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Email</label>
+                    <input type="email" className="form-control" name="email" value={formData.email} onChange={handleInputChange} required />
+                  </div>
+                </div>
+                <div className="col-md-3">
+                  <div className="mb-3">
+                    <label className="form-label">Address</label>
+                    <input type="text" className="form-control" name="address" value={formData.address} onChange={handleInputChange} required />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Country</label>
+                    <select className="form-control" name="lookup_country_id" value={formData.lookup_country_id} onChange={handleInputChange}>
+                      <option value="">Select Country</option>
+                      {countries.map(country => (
+                        <option key={country.id} value={country.id}>{country.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">State</label>
+                    <select className="form-control" name="lookup_state_id" value={formData.lookup_state_id} onChange={handleInputChange}>
+                      <option value="">Select State</option>
+                      {states.map(state => (
+                        <option key={state.id} value={state.id}>{state.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">City</label>
+                    <select className="form-control" name="lookup_city_id" value={formData.lookup_city_id} onChange={handleInputChange}>
+                      <option value="">Select City</option>
+                      {cities.map(city => (
+                        <option key={city.id} value={city.id}>{city.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="lookup_sakh_id" className="form-label">Sakh</label>
+                    <select
+                      id="lookup_sakh_id"
+                      name="lookup_sakh_id"
+                      className="form-control"
+                      value={formData.lookup_sakh_id}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select Sakh</option>
+                      {SakhData.map(s => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}                    </select>
+                  </div>
+                </div>
+                <div className="col-md-3">
+
+                  <div className="mb-3">
+                    <label className="form-label">Pincode</label>
+                    <input type="text" className="form-control" name="pincode" value={formData.pincode} onChange={handleInputChange} required />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Gender</label>
+                    <select className="form-select" name="gender" value={formData.gender} onChange={handleInputChange} required>
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Password</label>
+                    <input type="password" className="form-control" name="password" value={formData.password} onChange={handleInputChange} required />
+                  </div>
+                  <div className="mb-3 form-check">
+                    <input type="checkbox" className="form-check-input" id="is_active" name="is_active" checked={formData.is_active} onChange={handleInputChange} />
+                    <label className="form-check-label" htmlFor="is_active">Is Active</label>
+                  </div>
+                  <div className="mb-3 form-check">
+                    <input type="checkbox" className="form-check-input" id="is_verify" name="is_verify" checked={formData.is_verify} onChange={handleInputChange} />
+                    <label className="form-check-label" htmlFor="is_verify">Is Verify</label>
+                  </div>
+                  <div className="mb-3 form-check">
+                    <input type="checkbox" className="form-check-input" id="is_admin_approve" name="is_admin_approve" checked={formData.is_admin_approve} onChange={handleInputChange} />
+                    <label className="form-check-label" htmlFor="is_admin_approve">Is Admin Approved</label>
+                  </div>
+                </div>
               </div>
-              <div className="mb-3">
-                <label className="form-label">Name</label>
-                <input type="text" className="form-control" name="name" value={formData.name} onChange={handleInputChange} required />
+              <div className="row">
+                <div className="col-md-12 d-flex justify-content-end"> {/* Aligns the button to the right */}
+                  <button type="submit" className="btn btn-primary">Add</button>
+                </div>
               </div>
-              <div className="mb-3">
-                <label className="form-label">Surname</label>
-                <input type="text" className="form-control" name="surname" value={formData.surname} onChange={handleInputChange} required />
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Father's Name</label>
-                <input type="text" className="form-control" name="father_name" value={formData.father_name} onChange={handleInputChange} required />
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Mobile Number</label>
-                <input type="text" className="form-control" name="mobile_number" value={formData.mobile_number} onChange={handleInputChange} required />
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Email</label>
-                <input type="email" className="form-control" name="email" value={formData.email} onChange={handleInputChange} required />
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Gender</label>
-                <select className="form-select" name="gender" value={formData.gender} onChange={handleInputChange} required>
-                  <option value="">Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                </select>
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Address</label>
-                <input type="text" className="form-control" name="address" value={formData.address} onChange={handleInputChange} required />
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Country</label>
-                <select className="form-control" name="lookup_country_id" value={formData.lookup_country_id} onChange={handleInputChange}>
-                  <option value="">Select Country</option>
-                  {countries.map(country => (
-                    <option key={country.id} value={country.id}>{country.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-3">
-                <label className="form-label">State</label>
-                <select className="form-control" name="lookup_state_id" value={formData.lookup_state_id} onChange={handleInputChange}>
-                  <option value="">Select State</option>
-                  {states.map(state => (
-                    <option key={state.id} value={state.id}>{state.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-3">
-                <label className="form-label">City</label>
-                <select className="form-control" name="lookup_city_id" value={formData.lookup_city_id} onChange={handleInputChange}>
-                  <option value="">Select City</option>
-                  {cities.map(city => (
-                    <option key={city.id} value={city.id}>{city.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-3">
-                <label htmlFor="lookup_sakh_id" className="form-label">Sakh</label>
-                <select
-                  id="lookup_sakh_id"
-                  name="lookup_sakh_id"
-                  className="form-control"
-                  value={formData.lookup_sakh_id}
-                  onChange={handleInputChange}
-                >
-                  <option value="">Select Sakh</option>
-                  {SakhData.map(sakh => (
-                    <option key={sakh.id} value={sakh.id}>{sakh.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Pincode</label>
-                <input type="text" className="form-control" name="pincode" value={formData.pincode} onChange={handleInputChange} required />
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Password</label>
-                <input type="password" className="form-control" name="password" value={formData.password} onChange={handleInputChange} required />
-              </div>
-              <div className="mb-3 form-check">
-                <input type="checkbox" className="form-check-input" id="is_active" name="is_active" checked={formData.is_active} onChange={handleInputChange} />
-                <label className="form-check-label" htmlFor="is_active">Is Active</label>
-              </div>
-              <div className="mb-3 form-check">
-                <input type="checkbox" className="form-check-input" id="is_verify" name="is_verify" checked={formData.is_verify} onChange={handleInputChange} />
-                <label className="form-check-label" htmlFor="is_verify">Is Verify</label>
-              </div>
-              <div className="mb-3 form-check">
-                <input type="checkbox" className="form-check-input" id="is_admin_approve" name="is_admin_approve" checked={formData.is_admin_approve} onChange={handleInputChange} />
-                <label className="form-check-label" htmlFor="is_admin_approve">Is Admin Approved</label>
-              </div>
-              <button type="submit" className="btn btn-primary">Register</button>
             </form>
           </div>
         </div>
@@ -541,6 +631,13 @@ const Users = () => {
   const [userInfo, setUserInfo] = useState(null); // State to manage user info
   const [memberData, setMemberData] = useState([]); // Add this line to define memberData state
 
+  const navigate = useNavigate();
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      navigate('/login');
+    }
+  }, [navigate])
 
   const fetchUserData = async () => {
     try {
@@ -566,7 +663,79 @@ const Users = () => {
     fetchUserData();
   }, []);
 
+  function useApprovalState(initialValue) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [selectedValue, setSelectedValue] = useState(initialValue !== null ? initialValue.toString() : ''); // Convert to string to match option values
 
+    const handleDropdownChange = async (event) => {
+      const newValue = event.target.value;
+      setSelectedValue(newValue);
+      setIsOpen(false);
+
+      try {
+        const token = localStorage.getItem('adminToken');
+        const requestData = {
+          id: event.currentTarget.dataset.userId, // Use data attribute to pass userId
+          is_admin_approve: newValue === 'true'
+        };
+        const response = await fetch('https://expodersfour-001-site1.ltempurl.com/api/Admin/Auth/VerifyUser', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestData)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error approving user: ${response.statusText}`);
+        } else {
+          console.log('user approved successfully.');
+          // if (newValue === 'false') {
+          //     window.location.reload();
+          // }
+        }
+      } catch (error) {
+        console.error('Network error:', error.message);
+      }
+    };
+
+    return {
+      isOpen,
+      selectedValue,
+      setIsOpen,
+      handleDropdownChange
+    };
+  }
+
+  const ApproveColumn = ({ item }) => {
+    const { isOpen, selectedValue, setIsOpen, handleDropdownChange } = useApprovalState(item.is_admin_approve);
+
+    return (
+      <div className="d-flex justify-content-center">
+        {isOpen ? (
+          <select
+            className="form-select"
+            value={selectedValue}
+            onChange={handleDropdownChange}
+            onBlur={() => setIsOpen(false)}
+            data-user-id={item.id} // Set data attribute with userId
+          >
+            <option value={''}>Select Approval</option>
+            <option value={'true'}>Approved</option>
+            <option value={'false'}>Disapproved</option>
+          </select>
+        ) : (
+          <span
+            className={`badge rounded-pill ${selectedValue !== '' ? (selectedValue === 'true' ? 'bg-success' : 'bg-danger') : 'bg-secondary'}`}
+            onClick={() => setIsOpen(true)}
+          >
+            {selectedValue !== '' ? (selectedValue === 'true' ? 'Approved' : 'Disapproved') : 'Pending'}
+          </span>
+        )}
+      </div>
+    );
+  };
 
   const columns = [
     {
@@ -584,14 +753,28 @@ const Users = () => {
     {
       title: 'Name',
       data: 'username',
-      render: (item) => (
-        <>
-          <div>
-            <img src={item.image ? `https://expodersfour-001-site1.ltempurl.com/GetImage/${item.image}` : defaultImage} alt="User" style={{ width: '25px', height: '25px', borderRadius: '50%', marginRight: '5px' }} />
-            {item.username} {item.father_name && `${item.father_name}`} {item.surname}
-          </div>
-        </>
-      )
+      render: (item) => {
+        const handleImageError = (event) => {
+          event.target.onerror = null;
+          event.target.src = defaultImage;
+        };
+
+        const fullName = `${item.username} ${item.father_name ? item.father_name : ''} ${item.surname}`.trim();
+        const displayFullName = fullName.length > 15 ? `${fullName.substring(0, 20)}...` : fullName;
+
+        return (
+          <>
+            <div>
+              <img
+                src={`https://expodersfour-001-site1.ltempurl.com/GetImage/${item.image}`}
+                onError={handleImageError}
+                style={{ width: '25px', height: '25px', borderRadius: '50%', marginRight: '5px' }}
+              />
+              {displayFullName}
+            </div>
+          </>
+        );
+      }
     },
     { title: 'Mobile Number', data: 'mobile_number' },
     { title: 'Email', data: 'email' },
@@ -619,16 +802,8 @@ const Users = () => {
     },
     {
       title: 'Approve',
-      data: 'is_admin_approve',
-      render: (item) => (
-        <div className="d-flex justify-content-center" >
-          <span className={`badge rounded-pill ${item.is_admin_approve !== null ? (item.is_admin_approve ? 'bg-success' : 'bg-secondary') : 'bg-secondary'}`}>
-            {item.is_admin_approve !== null ? (item.is_admin_approve ? 'Approved' : 'Unapproved') : '-'}
-          </span>
-        </div>
-      )
-    }
-    ,
+      render: (item) => <ApproveColumn item={item} />
+    },
     {
       title: 'Actions',
       data: 'actions',
@@ -640,14 +815,15 @@ const Users = () => {
           <button className="btn me-1" style={{ height: '40px', width: '40px', fontSize: '1rem', border: 'none' }} onClick={() => handleDeleteClick(item.id, 'user')} title="Delete">
             <FontAwesomeIcon icon={faTrash} />
           </button>
-          <Link to={`/Home/UserInfo/${item.id}`} className="btn" style={{ height: '40px', width: '40px', border: 'none' }} >
+          <Link to={`/Users/Details/${item.id}`} className="btn" style={{ height: '40px', width: '40px', border: 'none' }} >
             <FontAwesomeIcon icon={faInfo} />
           </Link>
-
         </div>
       )
     }
   ];
+
+
 
   const handleAddClick = async (user) => {
     try {
@@ -777,12 +953,18 @@ const Users = () => {
             Authorization: `Bearer ${token}`
           }
         });
-        setUserDetailsVisible({ ...userDetailsVisible, [userId]: memberResponse.data.data });
+
+        // Exclude the data for the first row
+        const filteredData = memberResponse.data.data.filter((item, index) => index !== 0);
+
+        setUserDetailsVisible({ ...userDetailsVisible, [userId]: filteredData });
       }
     } catch (error) {
       console.error('Error handling row expand:', error);
     }
   };
+
+
   const handleMemberAddClick = async (user) => {
     try {
 
@@ -791,6 +973,7 @@ const Users = () => {
       console.error('Error handling member add click:', error);
     }
   };
+
 
   const getMemberById = async (memberId) => {
     try {
@@ -808,7 +991,8 @@ const Users = () => {
     }
   };
 
-  const renderRow = (user) => {
+
+  const renderRow = (user, verifyMember) => {
     return (
       <React.Fragment>
         <tr>
@@ -816,10 +1000,26 @@ const Users = () => {
             <td key={columnIndex}>
               {column.data === 'toggle' ? (
                 <button
-                  className="btn btn-secondary"
+                  className="btn"
                   onClick={() => handleRowExpand(user.id)}
                 >
-                  <FontAwesomeIcon icon={expandedRows.includes(user.id) ? faCaretUp : faCaretDown} style={{ background: 'none' }} />
+                  {loading ? (
+                    <div style={{
+                      position: 'fixed',
+                      top: '52%',
+                      left: '57%',
+                      transform: 'translate(-50%, -50%)',
+                      padding: '20px',
+                      textAlign: 'center'
+                    }}>
+                      <FontAwesomeIcon icon={faSpinner} spin style={{ fontSize: '2em' }} />
+                    </div>
+                  ) : (
+                    <FontAwesomeIcon
+                      icon={expandedRows.includes(user.id) ? faCaretUp : faCaretDown}
+                      style={{ background: 'none' }}
+                    />
+                  )}
                 </button>
               ) : (
                 column.render ? column.render(user) : user[column.data]
@@ -828,150 +1028,164 @@ const Users = () => {
           ))}
         </tr>
         <tr className={`collapse ${expandedRows.includes(user.id) ? 'show' : ''}`} id={`memberDataCollapse_${user.id}`}>
-          <td colSpan={columns.length}>
-            <h1 style={{ fontSize: '25px' }}>Member Details</h1>
-
-            {userDetailsVisible[user.id] && userDetailsVisible[user.id].length > 0 ? (
-              <table className="table table-bordered">
-                <thead>
-                  <tr>
-                    <th>Relation Type</th>
-                    <th>Name</th>
-                    <th>Surname</th>
-                    <th>Father/Husband Name</th>
-                    <th>Gender</th>
-                    <th>Phone Number</th>
-                    <th>Email</th>
-                    <th>Date of Birth</th>
-                    <th>Age</th>
-                    <th>Village</th>
-                    <th>Sakh</th>
-                    <th>Address</th>
-                    <th>City</th>
-                    <th>Country</th>
-                    <th>State</th>
-                    <th>Marital Type</th>
-                    <th>Education Type</th>
-                    <th>Education Sub Type</th>
-                    <th>Occupation</th>
-                    <th>Designation</th>
-                    <th>Company</th>
-                    <th>Occupation Address</th>
-                    <th>Mama Name</th>
-                    <th>Blood Group</th>
-                    <th>Pragatimandal</th>
-                    <th>Height</th>
-                    <th>Weight</th>
-                    <th>Interested in Matrimonial</th>
-                    <th>Interested in Blood Donation</th>
-                    <th>About Me</th>
-                    <th>Status</th>
-                    <th>Admin Approval</th>
-                    <th>Living Abroad</th>
-                    <th>User Name</th>
-                    <th>Hobbies</th>
-                    <th>Mama Address</th>
-                    <th>Mother Name</th>
-                    <th>Piyar</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {userDetailsVisible[user.id].map((member, index) => {
-                    debugger
-                    const memberResponse = member;
-                    console.log("memberdata:", memberResponse);
-                    return (
+          <td colSpan={columns.length} style={{ textAlign: 'center' }}>
+            {userDetailsVisible[user.id] ? (
+              loading ? (
+                <div style={{
+                  position: 'fixed',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  padding: '20px',
+                  textAlign: 'center'
+                }}>
+                  <FontAwesomeIcon icon={faSpinner} spin style={{ fontSize: '2em' }} />
+                </div>
+              ) : (
+                <>
+                  {userDetailsVisible[user.id].length > 0 ? (
+                    <table className="table table-bordered table-striped" style={{ backgroundColor: 'rgb(6, 182, 212)', color: 'black' }}>
+                  <thead>
+                    <tr>
+                      <th>Relation Type</th>
+                      <th>Name</th>
+                      <th>Phone Number</th>
+                      <th>Email</th>
+                      <th>DOB</th>
+                      <th>Age</th>
+                      <th>Marital Type</th>
+                      <th>Status</th>
+                      <th>Admin Approval</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {userDetailsVisible[user.id].map((member, index) => (
                       <tr key={index}>
                         <td>{member.relation_type}</td>
                         <td>
-                          {member.image && (
+                          <div style={{ display: 'flex', alignItems: 'center' }}>
                             <img
-                              src={`https://expodersfour-001-site1.ltempurl.com/GetImage/${member.image} ` ?? defaultImage}
-                              alt="Member"
-                              style={{ width: '50px', height: '50px' }}
+                              src={member.image ? `https://expodersfour-001-site1.ltempurl.com/GetImage/${member.image}` : defaultImage}
+                              onError={(e) => { e.target.src = defaultImage; }}
+                              style={{ width: '30px', height: '30px', marginRight: '5px' }}
                             />
-                          )}
-                          {member.name}
+                            <div>
+                              {`${member.name} ${member.surname} ${member.father_or_husband_name}`.length > 15 ? `${member.name} ${member.surname} ${member.father_or_husband_name}`.substring(0, 20) + '...' : `${member.name} ${member.surname} ${member.father_or_husband_name}`}
+                            </div>
+                          </div>
                         </td>
-                        <td>{member.surname}</td>
-                        <td>{member.father_or_husband_name}</td>
-                        <td>{member.gender}</td>
                         <td>{member.phone_number}</td>
                         <td>{member.email}</td>
-                        <td>{member.dob}</td>
+                        <td>{new Date(member.dob).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</td>
                         <td>{member.age}</td>
-                        <td>{member.village}</td>
-                        <td>{member.sakh}</td>
-                        <td>{member.address}</td>
-                        <td>{member.city}</td>
-                        <td>{member.country}</td>
-                        <td>{member.state}</td>
                         <td>{member.marital_type}</td>
-                        <td>{member.education_type}</td>
-                        <td>{member.education_sub_type}</td>
-                        <td>{member.occupation}</td>
-                        <td>{member.designation}</td>
-                        <td>{member.company}</td>
-                        <td>{member.occupation_address}</td>
-                        <td>{member.mama_name}</td>
-                        <td>{member.blood_group}</td>
-                        <td>{member.pragatimandal}</td>
-                        <td>{member.height_foot} ft {member.height_inch} inches</td>
-                        <td>{member.weight}</td>
-                        <td>{member.interested_matrimonial ? 'Yes' : 'No'}</td>
-                        <td>{member.interested_blood_donate ? 'Yes' : 'No'}</td>
-                        <td>{member.about_me}</td>
                         <td>
                           <span className={`badge rounded-pill ${member.is_active ? 'bg-success' : 'bg-secondary'}`}>
                             {member.is_active ? 'Active' : 'Inactive'}
                           </span>
                         </td>
                         <td>
-                          <span className={`badge rounded-pill ${member.is_admin_approve ? 'bg-success' : 'bg-danger'}`}>
-                            {member.is_admin_approve ? 'Approved' : 'Not Approved'}
-                          </span>
+                          <ApproveDropdown user={member} verifyMember={verifyMember} />
                         </td>
-
-                        <td>{member.you_live_abroad ? 'Yes' : 'No'}</td>
-                        <td>{member.user_name}</td>
-                        <td>{member.hobbies}</td>
-                        <td>{member.mama_address}</td>
-                        <td>{member.mother_name}</td>
-                        <td>{member.piyar}</td>
                         <td>
                           <div className="d-flex">
-                            <Link to={`/Home/Member/${user.id}`} className="btn" style={{ height: '40px', width: '40px', border: 'none' }} onClick={() => handleMemberAddClick(user)}>
+                            <Link to={`/Home/Member/${user.id}`} className="btn me-1" title="Add Member">
                               <FontAwesomeIcon icon={faAdd} />
                             </Link>
-                            <Link
-                              to={{
-                                pathname: `/Home/Member/${user.id}/${member.id}/`,
-                              }}
-                              className="btn"
-                              style={{ height: '40px', width: '40px', border: 'none' }}
-                            >
+                            <Link to={{ pathname: `/Home/Member/${user.id}/${member.id}/` }} className="btn me-1" title="Edit Member">
                               <FontAwesomeIcon icon={faEdit} />
                             </Link>
-                            <button className="btn me-1" style={{ height: '40px', width: '40px', fontSize: '1rem', border: 'none' }} onClick={() => handleDeleteClick(member.id, 'member')} title="Delete">
+                            <button className="btn me-1" onClick={() => handleDeleteClick(member.id, 'member')} title="Delete Member">
                               <FontAwesomeIcon icon={faTrash} />
                             </button>
-                            <Link to={`/Home/MemberInfo/${member.id}`} className="btn" style={{ height: '40px', width: '40px', border: 'none' }} >
+                            <Link to={`/Member/Details/${member.id}`} className="btn" title="Member Info">
                               <FontAwesomeIcon icon={faInfo} />
                             </Link>
                           </div>
                         </td>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            ) : (
-              <p>No member data available for this user.</p>
-            )}
-          </td>
-        </tr>
-      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div style={{ justifyContent: 'center', fontWeight: 'bold' }}>
+                  <p>No Member Found</p>
+                </div>
+              )}
+            </>
+          )
+        ) : null}
+      </td>
+    </tr>
+  </React.Fragment>
+);
+};
+
+  const ApproveDropdown = ({ user, verifyMember }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [selectedValue, setSelectedValue] = useState(user.is_admin_approve);
+
+    const handleDropdownChange = async (event) => {
+      const newValue = event.target.value;
+      setSelectedValue(newValue);
+      setIsOpen(false);
+
+      // Prepare data for the API request
+      const requestData = {
+        member_id: user.id, // Assuming user.id is the user ID
+        is_admin_approve: newValue === 'true' // Convert string to boolean
+      };
+
+      try {
+        // Make API call
+        const token = localStorage.getItem('adminToken');
+        const response = await fetch('https://expodersfour-001-site1.ltempurl.com/api/admin/Member/VerifyMember', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestData)
+        });
+
+        if (!response.ok) {
+          console.error('Error approving user:', response.statusText);
+        } else {
+          console.log('User approved successfully.');
+          if (newValue === 'false') {
+            window.location.reload(); // Reload the page if disapproved
+          }
+        }
+      } catch (error) {
+        console.error('Network error:', error.message);
+      }
+    };
+
+    return (
+      <div className="d-flex justify-content-center">
+        {isOpen ? (
+          <select
+            className="form-select"
+            value={selectedValue}
+            onChange={handleDropdownChange}
+            onBlur={() => setIsOpen(false)}
+            style={{ width: 'auto' }} // Adjust the width here
+          >
+            <option value="">Select Approval</option>
+            <option value={true}>Approved</option>
+            <option value={false}>Disapproved</option>
+          </select>
+        ) : (
+          <span
+            className={`badge rounded-pill ${selectedValue !== null ? (selectedValue ? 'bg-success' : 'bg-danger') : 'bg-secondary'}`}
+            onClick={() => setIsOpen(true)}
+            style={{ cursor: 'pointer' }} // Add cursor pointer for better indication
+          >
+            {selectedValue !== null ? (selectedValue ? 'Approved' : 'Disapproved') : 'Pending'}
+          </span>
+        )}
+      </div>
     );
   };
 
@@ -988,15 +1202,16 @@ const Users = () => {
 
   return (
     <div className="container-lg">
-      <h1>User Management</h1>
+      <h1>User</h1>
       <div className="position-relative">
         <button className="btn btn-primary" onClick={handleAddClick} style={{ position: 'absolute', top: '-45px', right: 0, zIndex: 1 }}>Register</button>
         <div className="mb-2">
           {loading ? (
             <div style={{
               position: 'fixed',
-              top: '50%',
-              left: '50%',
+              top: '52%',
+              left: '57%',
+              left: '57%',
               transform: 'translate(-50%, -50%)',
               padding: '20px',
               textAlign: 'center'
@@ -1009,6 +1224,7 @@ const Users = () => {
               columns={columns}
               className="table-bordered"
               renderRow={renderRow}
+              defaultEntitiesPerPage={10}
             />
           )}
           {showAddForm && (
@@ -1031,11 +1247,11 @@ const Users = () => {
               <div className="modal-dialog" role="document">
                 <div className="modal-content">
                   <div className="modal-header">
-                    <h5 className="modal-title">Confirm Deletion</h5>
+                    <h5 className="modal-title">Confirm</h5>
                     <button type="button" className="btn-close" onClick={() => setShowDeleteConfirmation(false)}></button>
                   </div>
                   <div className="modal-body">
-                    <p>Are you sure you want to delete {deleteType === 'user' ? 'user' : 'member'}: <strong>{deleteType === 'user' ? userInfo.username : userInfo.name}</strong>?</p>
+                    <p>Are you sure you want to delete this <strong>{deleteType === 'user' ? userInfo.username : userInfo.name}</strong> {deleteType === 'user' ? 'user' : 'member'} ?</p>
                   </div>
                   <div className="modal-footer">
                     <button type="button" className="btn btn-danger" onClick={handleDeleteConfirmation}>Delete</button>

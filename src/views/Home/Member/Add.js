@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-    import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes } from '@fortawesome/free-solid-svg-icons'; // Using faTimes instead of faClose
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTimes, faPlus } from '@fortawesome/free-solid-svg-icons'; // Using faTimes instead of faClose
 
 
-const AddMemberForm = ({  }) => {
+const AddMemberForm = ({ }) => {
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -44,8 +44,8 @@ const AddMemberForm = ({  }) => {
         interested_matrimonial: false,
         interested_blood_donate: false,
         about_me: '',
-        is_active: true,
-        is_admin_approve: true,
+        is_active: false,
+        is_admin_approve: false,
         created_by_id: '',
         you_live_abroad: '',
         mama_address: '',
@@ -221,7 +221,16 @@ const AddMemberForm = ({  }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const formDataCopy = { ...formData };
+            const formDataCopy = new FormData(); // Create a new FormData object
+            // Append all other form data fields to the FormData object
+            Object.keys(formData).forEach((key) => {
+                formDataCopy.append(key, formData[key]);
+            });
+
+            if (imageFile instanceof File) { // Check if imageFile is an instance of File
+                formDataCopy.append('image', imageFile); // Append the selected image file to the FormData object
+            }
+
             const token = localStorage.getItem('adminToken');
             const response = await axios.post(
                 'https://expodersfour-001-site1.ltempurl.com/api/Member/Add',
@@ -229,12 +238,11 @@ const AddMemberForm = ({  }) => {
                 {
                     headers: {
                         'Content-Type': 'multipart/form-data',
-                        Authorization: `Bearer ${token}`
-                    }
+                        Authorization: `Bearer ${token}`,
+                    },
                 }
             );
             console.log('Member added successfully:', response.data.data);
-
             setIsSuccess(true);
         } catch (error) {
             console.error('Error adding member:', error);
@@ -242,6 +250,12 @@ const AddMemberForm = ({  }) => {
         }
     };
 
+    const [imageFile, setImageFile] = useState(null);
+
+    // Function to handle image selection
+    const handleImageChange = (e) => {
+        setImageFile(e.target.files[0]);
+    };
     useEffect(() => {
         if (isSuccess) {
             // Redirect to user page
@@ -250,186 +264,158 @@ const AddMemberForm = ({  }) => {
     }, [isSuccess, navigate]);
 
 
-    return (
-        <div className="modal show" tabIndex="-1" role="dialog" style={{ display: 'block' }}>
-            <div className="modal-dialog" role="document">
-                <div className="modal-content">
-                    <div className="modal-header">
-                        <h5 className="modal-title">Add Member</h5>
-                        <Link to={`/Home/Users`} className="btn-Close" style={{ marginLeft: '330px' }} >
-                            <FontAwesomeIcon icon={faTimes} /> {/* Using faTimes instead of faClose */}
-                        </Link>
-                    </div>
-                    <div className="modal-body">
+        return (
+            <div className="modal show" tabIndex="-1" role="dialog" style={{ display: 'block', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+                <div className="modal-dialog modal-xl" role="document">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">Add Member</h5>
+                            <Link to={`/Home/Users`} className="btn-Close" style={{ marginLeft: '970px' }}>
+                                <FontAwesomeIcon icon={faTimes} />
+                            </Link>
+                        </div>
+                        <div className="modal-body">
                             <form onSubmit={handleSubmit}>
-                                <div className="mb-3">
-                                    <label className="form-label">Relation-Type</label>
-                                    <select className="form-control" name="lookup_relation_type_id" value={formData.lookup_relation_type_id} onChange={handleInputChange}>
-                                        <option value="">Select Relation-Type</option>
-                                        {Relationdata.map(r => (
-                                            <option key={r.id} value={r.id}>{r.title}</option>
-                                        ))}
-                                    </select>
+                                <div className="row">
+                                <div className="col-md-3 d-flex justify-content-center align-items-center">
+                                    <div className="mb-3" style={{ width: '150px', height: '150px', border: '1px solid white', cursor: 'pointer', position: 'relative' }}>
+                                        <label className="form-label" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}></label>
+                                        <input id="imageInput" type="file" className="form-control" name="image" onChange={handleImageChange} style={{ display: 'none' }} />
+                                        <div className="image-container" style={{ width: '100%', height: '100%', overflow: 'hidden' }} onClick={() => document.getElementById('imageInput').click()}
+                                            onMouseEnter={(e) => { e.currentTarget.firstChild.style.filter = 'brightness(50%)' }}
+                                            onMouseLeave={(e) => { e.currentTarget.firstChild.style.filter = 'brightness(100%)' }}>
+                                            {imageFile ? (
+                                                <img src={URL.createObjectURL(imageFile)} alt="Selected Image" className="img-fluid" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            ) : (
+                                                <FontAwesomeIcon icon={faPlus} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Surname</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="surname"
-                                        value={formData.surname || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
+                                <div className="col-md-2">
+                                    <div className="mb-3">
+                                        <div className="mb-3">
+                                            <label className="form-label">Relation-Type</label>
+                                            <select className="form-control" name="lookup_relation_type_id" value={formData.lookup_relation_type_id} onChange={handleInputChange}>
+                                                <option value="">Select Relation-Type</option>
+                                                {Relationdata.map(r => (
+                                                    <option key={r.id} value={r.id}>{r.title}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Surname</label>
+                                            <input type="text" className="form-control" name="surname" value={formData.surname || ''} onChange={handleInputChange} required />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Name</label>
+                                            <input type="text" className="form-control" name="name" value={formData.name || ''} onChange={handleInputChange} required />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Father/Husband Name</label>
+                                            <input type="text" className="form-control" name="father_or_husband_name" value={formData.father_or_husband_name || ''} onChange={handleInputChange} required />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Gender</label>
+                                            <select className="form-select" name="gender" value={formData.gender} onChange={handleInputChange}>
+                                                <option value="Male">Male</option>
+                                                <option
+                                                    value="Female">Female</option> </select>
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Phone Number</label>
+                                            <input type="text" className="form-control" name="phone_number" value={formData.phone_number || ''} onChange={handleInputChange} required />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Email</label>
+                                            <input type="email" className="form-control" name="email" value={formData.email || ''} onChange={handleInputChange} required />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Date of Birth</label>
+                                            <input type="date" className="form-control" name="dob" value={formData.dob || ''} onChange={handleInputChange} required />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Age</label>
+                                            <input type="number" className="form-control" name="age" value={formData.age || ''} onChange={handleInputChange} required />
+                                        </div>                                    </div>
                                 </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Name</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="name"
-                                        value={formData.name || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
+                                <div className="col-md-2">
+                                    <div className="mb-3">
+                                        <div className="mb-3">
+                                            <label className="form-label">Village</label>
+                                            <select className="form-control" name="lookup_village_id" value={formData.lookup_village_id} onChange={handleInputChange}>
+                                                <option value="">Select Village</option>
+                                                {Villagedata.map(r => (
+                                                    <option key={r.id} value={r.id}>{r.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Address</label>
+                                            <input type="text" className="form-control" name="address" value={formData.address || ''} onChange={handleInputChange} />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Country</label>
+                                            <select className="form-control" name="lookup_country_id" value={formData.lookup_country_id} onChange={handleInputChange}>
+                                                <option value="">Select Country</option>
+                                                {countries.map(country => (
+                                                    <option key={country.id} value={country.id}>{country.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">State</label>
+                                            <select className="form-control" name="lookup_state_id" value={formData.lookup_state_id} onChange={handleInputChange}>
+                                                <option value="">Select State</option>
+                                                {states.map(state => (
+                                                    <option key={state.id} value={state.id}>{state.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">City</label>
+                                            <select className="form-control" name="lookup_city_id" value={formData.lookup_city_id} onChange={handleInputChange}>
+                                                <option value="">Select City</option>
+                                                {cities.map(city => (
+                                                    <option key={city.id} value={city.id}>{city.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="mb-3">
+                                            <label htmlFor="lookup_sakh_id" className="form-label">Sakh</label>
+                                            <select id="lookup_sakh_id" name="lookup_sakh_id" className="form-control" value={formData.lookup_sakh_id} onChange={handleInputChange}>
+                                                <option value="">Select Sakh</option>
+                                                {SakhData.map(sakh => (
+                                                    <option key={sakh.id} value={sakh.id}>{sakh.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Mama Address</label>
+                                            <input type="text" className="form-control" name="mama_address" value={formData.mama_address || ''} onChange={handleInputChange} />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Mother Name</label>
+                                            <input type="text" className="form-control" name="mother_name" value={formData.mother_name || ''} onChange={handleInputChange} />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Hobbies</label>
+                                            <input type="text" className="form-control" name="hobbies" value={formData.hobbies || ''} onChange={handleInputChange} />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Father/Husband Name</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="father_or_husband_name"
-                                        value={formData.father_or_husband_name || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Gender</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="gender"
-                                        value={formData.gender || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Phone Number</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="phone_number"
-                                        value={formData.phone_number || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Email</label>
-                                    <input
-                                        type="email"
-                                        className="form-control"
-                                        name="email"
-                                        value={formData.email || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Date of Birth</label>
-                                    <input
-                                        type="date"
-                                        className="form-control"
-                                        name="dob"
-                                        value={formData.dob || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Age</label>
-                                    <input
-                                        type="number"
-                                        className="form-control"
-                                        name="age"
-                                        value={formData.age || ''}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Village</label>
-                                    <select className="form-control" name="lookup_village_id" value={formData.lookup_village_id} onChange={handleInputChange}>
-                                        <option value="">Select Village</option>
-                                        {Villagedata.map(r => (
-                                            <option key={r.id} value={r.id}>{r.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Address</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="address"
-                                        value={formData.address || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Country</label>
-                                    <select className="form-control" name="lookup_country_id" value={formData.lookup_country_id} onChange={handleInputChange}>
-                                        <option value="">Select Country</option>
-                                        {countries.map(country => (
-                                            <option key={country.id} value={country.id}>{country.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">State</label>
-                                    <select className="form-control" name="lookup_state_id" value={formData.lookup_state_id} onChange={handleInputChange}>
-                                        <option value="">Select State</option>
-                                        {states.map(state => (
-                                            <option key={state.id} value={state.id}>{state.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">City</label>
-                                    <select className="form-control" name="lookup_city_id" value={formData.lookup_city_id} onChange={handleInputChange}>
-                                        <option value="">Select City</option>
-                                        {cities.map(city => (
-                                            <option key={city.id} value={city.id}>{city.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="mb-3">
-                                    <label htmlFor="lookup_sakh_id" className="form-label">Sakh</label>
-                                    <select
-                                        id="lookup_sakh_id"
-                                        name="lookup_sakh_id"
-                                        className="form-control"
-                                        value={formData.lookup_sakh_id}
-                                        onChange={handleInputChange}
-                                    >
-                                        <option value="">Select Sakh</option>
-                                        {SakhData.map(sakh => (
-                                            <option key={sakh.id} value={sakh.id}>{sakh.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Marital</label>
-                                    <select className="form-control" name="lookup_marital_type_id" value={formData.lookup_marital_type_id} onChange={handleInputChange}>
-                                        <option value="">Select Marital-Type</option>
-                                        {Maritaldata.map(r => (
-                                            <option key={r.id} value={r.id}>{r.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                {/* <div className="mb-3">
+                                <div className="col-md-2">
+                                    <div className="mb-3">
+                                        <div className="mb-3">
+                                            <label className="form-label">Marital</label>
+                                            <select className="form-control" name="lookup_marital_type_id" value={formData.lookup_marital_type_id} onChange={handleInputChange}>
+                                                <option value="">Select Marital-Type</option>
+                                                {Maritaldata.map(r => (
+                                                    <option key={r.id} value={r.id}>{r.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        {/* <div className="mb-3">
                                 <label className="form-label">Career</label>
                                 <select className="form-control" name="lookup_career_id" value={formData.lookup_career_id} onChange={handleInputChange}>
                                     <option value="">Select Career</option>
@@ -438,229 +424,121 @@ const AddMemberForm = ({  }) => {
                                     ))}
                                 </select>
                             </div> */}
-                                <div className="mb-3">
-                                    <label className="form-label">Education Sub Type</label>
-                                    <select className="form-control" name="lookup_education_sub_type_id" value={formData.lookup_education_sub_type_id} onChange={handleInputChange}>
-                                        <option value="">Select Education Sub Type</option>
-                                        {Educationsubtypedata.map(r => (
-                                            <option key={r.id} value={r.id}>{r.name}</option>
-                                        ))}
-                                    </select>
+                                        <div className="mb-3">
+                                            <label className="form-label">Education Sub Type</label>
+                                            <select className="form-control" name="lookup_education_sub_type_id" value={formData.lookup_education_sub_type_id} onChange={handleInputChange}>
+                                                <option value="">Select Education Sub Type</option>
+                                                {Educationsubtypedata.map(r => (
+                                                    <option key={r.id} value={r.id}>{r.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Education Type</label>
+                                            <select className="form-control" name="lookup_education_type_id" value={formData.lookup_education_type_id} onChange={handleInputChange}>
+                                                <option value="">Select Education Type</option>
+                                                {Educationtypedata.map(r => (
+                                                    <option key={r.id} value={r.id}>{r.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Occupation </label>
+                                            <select className="form-control" name="lookup_occupation_id" value={formData.lookup_occupation_id} onChange={handleInputChange}>
+                                                <option value="">Select Occupation Type</option>
+                                                {Occupationdata.map(r => (
+                                                    <option key={r.id} value={r.id}>{r.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Designation</label>
+                                            <input type="text" className="form-control" name="designation" value={formData.designation || ''} onChange={handleInputChange} />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Company</label>
+                                            <input type="text" className="form-control" name="company" value={formData.company || ''} onChange={handleInputChange} />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Occupation Address</label>
+                                            <input type="text" className="form-control" name="occupation_address" value={formData.occupation_address || ''} onChange={handleInputChange} />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Mama Name</label>
+                                            <input type="text" className="form-control" name="mama_name" value={formData.mama_name || ''} onChange={handleInputChange} />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Blood Group </label>
+                                            <select className="form-control" name="lookup_blood_group_id" value={formData.lookup_blood_group_id} onChange={handleInputChange}>
+                                                <option value="">Select Blood-Group</option>
+                                                {Bloodgroupdata.map(r => (
+                                                    <option key={r.id} value={r.id}>{r.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        
+                                    </div>
                                 </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Education Type</label>
-                                    <select className="form-control" name="lookup_education_type_id" value={formData.lookup_education_type_id} onChange={handleInputChange}>
-                                        <option value="">Select Education Type</option>
-                                        {Educationtypedata.map(r => (
-                                            <option key={r.id} value={r.id}>{r.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Occupation </label>
-                                    <select className="form-control" name="lookup_occupation_id" value={formData.lookup_occupation_id} onChange={handleInputChange}>
-                                        <option value="">Select Occupation Type</option>
-                                        {Occupationdata.map(r => (
-                                            <option key={r.id} value={r.id}>{r.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Designation</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="designation"
-                                        value={formData.designation || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Company</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="company"
-                                        value={formData.company || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Occupation Address</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="occupation_address"
-                                        value={formData.occupation_address || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Mama Name</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="mama_name"
-                                        value={formData.mama_name || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Blood Group </label>
-                                    <select className="form-control" name="lookup_blood_group_id" value={formData.lookup_blood_group_id} onChange={handleInputChange}>
-                                        <option value="">Select Blood-Group</option>
-                                        {Bloodgroupdata.map(r => (
-                                            <option key={r.id} value={r.id}>{r.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Pragatimandal</label>
-                                    <select className="form-control" name="lookup_pragatimandal_id" value={formData.lookup_pragatimandal_id} onChange={handleInputChange}>
-                                        <option value="">Select Pragatimandal</option>
-                                        {Pragatimandaldata.map(r => (
-                                            <option key={r.id} value={r.id}>{r.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Height Foot</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="height_foot"
-                                        value={formData.height_foot || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Height Inch</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="height_inch"
-                                        value={formData.height_inch || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Weight</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="weight"
-                                        value={formData.weight || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Image</label>
-                                    <input
-                                        type="file"
-                                        className="form-control"
-                                        name="image"
-                                        value={formData.image || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Interested Matrimonial</label>
-                                    <input
-                                        type="checkbox"
-                                        className="form-check-input"
-                                        name="interested_matrimonial"
-                                        checked={formData.interested_matrimonial}
-                                        onChange={() => setFormData({ ...formData, interested_matrimonial: !formData.interested_matrimonial })}
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Interested Blood Donate</label>
-                                    <input
-                                        type="checkbox"
-                                        className="form-check-input"
-                                        name="interested_blood_donate"
-                                        checked={formData.interested_blood_donate}
-                                        onChange={() => setFormData({ ...formData, interested_blood_donate: !formData.interested_blood_donate })}
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">About Me</label>
-                                    <textarea
-                                        className="form-control"
-                                        name="about_me"
-                                        value={formData.about_me || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Active</label>
-                                    <input
-                                        type="checkbox"
-                                        className="form-check-input"
-                                        name="is_active"
-                                        checked={formData.is_active}
-                                        onChange={() => setFormData({ ...formData, is_active: !formData.is_active })}
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Admin Approval</label>
-                                    <input
-                                        type="checkbox"
-                                        className="form-check-input"
-                                        name="is_active"
-                                        checked={formData.is_admin_approve}
-                                        onChange={() => setFormData({ ...formData, is_admin_approve: !formData.is_admin_approve })}
-                                    />
-                                </div>
+                                <div className="col-md-3">
+                                    <div className="mb-3">
+                                            <label className="form-label">Pragatimandal</label>
+                                            <select className="form-control" name="lookup_pragatimandal_id" value={formData.lookup_pragatimandal_id} onChange={handleInputChange}>
+                                                <option value="">Select Pragatimandal</option>
+                                                {Pragatimandaldata.map(r => (
+                                                    <option key={r.id} value={r.id}>{r.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Height Foot</label>
+                                            <input type="text" className="form-control" name="height_foot" value={formData.height_foot || ''} onChange={handleInputChange} />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Height Inch</label>
+                                            <input type="text" className="form-control" name="height_inch" onChange={handleInputChange} />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Weight</label>
+                                            <input type="text" className="form-control" name="weight" value={formData.weight || ''} onChange={handleInputChange} />
+                                        </div>
 
-                                <div className="mb-3">
-                                    <label className="form-label">You Live Abroad</label>
-                                    <input
-                                        type="checkbox"
-                                        className="form-check-input"
-                                        name="you_live_abroad"
-                                        checked={formData.you_live_abroad}
-                                        onChange={() => setFormData({ ...formData, you_live_abroad: !formData.you_live_abroad })}
-                                    />
+                                        <div className="mb-3">
+                                            <label className="form-label">Interested Matrimonial</label>
+                                            <input type="checkbox" className="form-check-input" name="interested_matrimonial" checked={formData.interested_matrimonial} onChange={() => setFormData({ ...formData, interested_matrimonial: !formData.interested_matrimonial })} />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Interested Blood Donate</label>
+                                            <input type="checkbox" className="form-check-input" name="interested_blood_donate" checked={formData.interested_blood_donate} onChange={() => setFormData({ ...formData, interested_blood_donate: !formData.interested_blood_donate })} />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">About Me</label>
+                                            <textarea className="form-control" name="about_me" value={formData.about_me || ''} onChange={handleInputChange} />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Active</label>
+                                            <input type="checkbox" className="form-check-input" name="is_active" checked={formData.is_active} onChange={() => setFormData({ ...formData, is_active: !formData.is_active })} />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Admin Approval</label>
+                                            <input type="checkbox" className="form-check-input" name="is_active" checked={formData.is_admin_approve} onChange={() => setFormData({ ...formData, is_admin_approve: !formData.is_admin_approve })} />
+                                        </div>
+
+                                        <div className="mb-3">
+                                            <label className="form-label">You Live Abroad</label>
+                                            <input type="checkbox" className="form-check-input" name="you_live_abroad" checked={formData.you_live_abroad} onChange={() => setFormData({ ...formData, you_live_abroad: !formData.you_live_abroad })} />
+                                        </div>
                                 </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Mama Address</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="mama_address"
-                                        value={formData.mama_address || ''}
-                                        onChange={handleInputChange}
-                                    />
+                            </div>
+                                <div className="col-md-12 d-flex justify-content-end">
+                                    <button style={{ marginLeft: '270px' }} type="submit" className="btn btn-primary">Add Member</button>
                                 </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Mother Name</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="mother_name"
-                                        value={formData.mother_name || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Hobbies</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="hobbies"
-                                        value={formData.hobbies || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <button type="submit" className="btn btn-primary">Add Member</button>
-                            </form >
-                            {isSuccess && <p>Member added successfully!</p>}
+                        </form>
+                        {isSuccess && <p>Member added successfully!</p>}
                         {isError && <p>Error adding member. Please try again later.</p>}
-                    </div >
-                </div >
-            </div >
-        </div >
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 export default AddMemberForm;

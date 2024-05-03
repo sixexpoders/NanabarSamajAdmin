@@ -6,6 +6,7 @@ const Newsinfo = () => {
   const { id } = useParams();
   const [news, setNews] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
   useEffect(() => {
     const getNewsById = async (newsId) => {
@@ -25,11 +26,12 @@ const Newsinfo = () => {
   }, [id]);
 
   const newsInfoStyle = {
-    border: '1px solid #ccc',
+    display: 'flex',
+    flexDirection: 'column',
     borderRadius: '5px',
     padding: '20px',
     margin: '20px auto',
-    maxWidth: '600px',
+    maxWidth: '1000px',
     boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
   };
 
@@ -37,28 +39,61 @@ const Newsinfo = () => {
     fontWeight: 'bold'
   };
 
+  const descriptionStyle = {
+    maxHeight: showFullDescription ? 'none' : '100px',
+    overflow: 'hidden',
+    marginBottom: '10px'
+  };
+
+  const toggleDescription = () => {
+    setShowFullDescription(!showFullDescription);
+  };
+
+  const displayData = (data) => {
+    return data !== null ? data : 'NA';
+  };
+
   return (
     <div className="container">
-      <h2 className="my-4" style={{ textAlign: 'center' }}>News Information</h2>
       <div style={newsInfoStyle}>
-        <div className="mb-3">
-          <label style={labelStyle}>Title:</label>
-          <div>{loading ? 'Loading...' : (news ? news.title : 'News not found')}</div>
+        <div style={{ marginBottom: '20px' }}>
+          <div className="mb-4">
+            <label style={labelStyle}>Title:</label>
+            <div>{loading ? 'Loading...' : displayData(news ? news.title : null)}</div>
+          </div>
+          <div className="mb-4">
+            <label style={labelStyle}>Description:</label>
+            <div style={descriptionStyle}>{loading ? 'Loading...' : displayData(news ? news.description : null)}</div>
+            {news && news.description && news.description.length > 100 && (
+              <button className="btn btn-link" onClick={toggleDescription} style={{ display: 'block', marginTop: '5px' }}>
+                {showFullDescription ? 'Read Less' : 'Read More'}
+              </button>
+            )}
+          </div>
         </div>
-        <div className="mb-3">
-          <label style={labelStyle}>Description:</label>
-          <div>{loading ? 'Loading...' : (news ? news.description : 'News not found')}</div>
+        <div style={{ marginBottom: '20px' }}>
+          <div className="mb-4">
+            <label style={labelStyle}>Date & Time:</label>
+            <div>
+              {loading
+                ? 'Loading...'
+                : displayData(news ? new Date(news.dateTime).toLocaleString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }) : null)}
+            </div>
+          </div>
+          <div className="mb-4">
+            <label style={labelStyle}>Village:</label>
+            <div>{loading ? 'Loading...' : displayData(news ? news.village : null)}</div>
+          </div>
         </div>
-        <div className="mb-3">
-          <label style={labelStyle}>Date & Time:</label>
-          <div>{loading ? 'Loading...' : (news ? news.dateTime : 'News not found')}</div>
-        </div>
-        <div className="mb-3">
-          <label style={labelStyle}>Village:</label>
-          <div>{loading ? 'Loading...' : (news ? news.village : 'News not found')}</div>
-        </div>
-        <div className="mb-3">
-          <Link to="/Home/News" className="btn btn-primary">Back To News Page</Link>
+        <div>
+          <div className="mb-4">
+            <label style={labelStyle}>Created Date:</label>
+            <div>
+              {loading
+                ? 'Loading...'
+                : displayData(news ? new Date(news.created_on).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : null)}
+            </div>
+          </div>
         </div>
       </div>
     </div>

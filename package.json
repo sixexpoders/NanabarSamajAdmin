@@ -27,6 +27,7 @@
     "@coreui/react-chartjs": "^3.0.0-rc.0",
     "@coreui/utils": "^2.0.2",
     "@faker-js/faker": "^8.4.1",
+    "@fortawesome/fontawesome-free": "^6.5.2",
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
     "@fortawesome/free-solid-svg-icons": "^6.5.1",
     "@fortawesome/react-fontawesome": "^0.2.0",

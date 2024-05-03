@@ -7,7 +7,7 @@ const AppFooter = () => {
       <div> 
       </div>
       <div className="ms-auto">
-        <span className="me-1">Powered by Meet S.</span>
+        <span className="me-1">Powered by Expoders Solution</span>
       </div>
     </CFooter>
   )
