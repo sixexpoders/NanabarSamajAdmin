@@ -38,7 +38,7 @@ const ForgotPassword = () => {
     try {
       const token = localStorage.getItem('adminToken');
       const response = await axios.post(
-        `http://nanabarsamaj-001-site1.htempurl.com/api/Admin/Auth/ForgotPassword?email=${encodeURIComponent(email)}`,
+        `https://expodersfour-001-site1.ltempurl.com/api/Admin/Auth/ForgotPassword?email=${encodeURIComponent(email)}`,
         {}, // empty data object
         {
           headers: {

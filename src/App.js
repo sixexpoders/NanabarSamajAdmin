@@ -1,18 +1,16 @@
 import React, { Suspense, useEffect } from 'react';
-import { HashRouter, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'; // Change to BrowserRouter
 import { useSelector } from 'react-redux';
 import { CSpinner, useColorModes } from '@coreui/react';
 import './scss/style.scss';
 import ForgotPassword from './views/pages/login/Forgot-Password';
-import ResetPassword from './views/pages/login/Reset-Password'; // Import the ResetPassword component
-import Login from './views/pages/login/Login'; // Import the Login component
+import ResetPassword from './views/pages/login/Reset-Password';
+import Login from './views/pages/login/Login';
+import Page404 from './views/pages/page404/Page404';
+import ChangePassword from './views/pages/Change-Password';
+import DefaultLayout from './layout/DefaultLayout'; // Change import
 
-// Containers
-const DefaultLayout = React.lazy(() => import('./layout/DefaultLayout'));
-
-// Pages
 const Register = React.lazy(() => import('./views/pages/register/Register'));
-const Page404 = React.lazy(() => import('./views/pages/page404/Page404'));
 const Page500 = React.lazy(() => import('./views/pages/page500/Page500'));
 
 const App = () => {
@@ -34,7 +32,7 @@ const App = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <HashRouter>
+    <BrowserRouter> {/* Change to BrowserRouter */}
       <Suspense
         fallback={
           <div className="pt-3 text-center">
@@ -43,17 +41,19 @@ const App = () => {
         }
       >
         <Routes>
-          <Route exact path="/" element={<Navigate to="/login" />} /> 
+          <Route exact path="/" element={<Navigate to="/login" />} />
           <Route exact path="/login" element={<Login />} />
           <Route exact path="/register" element={<Register />} />
           <Route exact path="/forgot-password" element={<ForgotPassword />} />
           <Route exact path="/reset-password" element={<ResetPassword />} />
-          <Route exact path="/404" element={<Page404 />} />
+          <Route exact path="/change-password" element={<ChangePassword />} /> {/* Add this route */}
           <Route exact path="/500" element={<Page500 />} />
           <Route path="*" element={<DefaultLayout />} />
+          {/* Catch-all route for 404 */}
+          <Route path="*" element={<Page404 />} />
         </Routes>
       </Suspense>
-    </HashRouter>
+    </BrowserRouter>
   );
 };
 

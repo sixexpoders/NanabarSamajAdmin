@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const CommonDataTable = ({ data, columns, className, entitiesPerPageOptions, defaultEntitiesPerPage }) => {
+const CommonDataTable = ({ data, columns, className, entitiesPerPageOptions, defaultEntitiesPerPage, renderRow }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortedColumn, setSortedColumn] = useState('');
@@ -93,36 +93,40 @@ const CommonDataTable = ({ data, columns, className, entitiesPerPageOptions, def
           </div>
         </div>
       </div>
-      <div className="table-responsive" style={{marginTop:'10px'}}>
-        <table className={`table ${className}`}>
-          <thead>
-            <tr>
-              {columns.map((column, index) => (
-                <th key={index} style={{ cursor: 'pointer' }} onClick={() => handleSort(column.data)}>
-                  {column.title}
-                  {sortedColumn === column.data && (
-                    <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'down' : 'up'}`} style={{ marginLeft: '5px' }}></i>
-                  )}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedData.map((item, rowIndex) => (
-              <tr key={rowIndex}>
-                {columns.map((column, colIndex) => (
-                  <td key={colIndex}>
-                    {column.render ? column.render(item) : item[column.data] ? item[column.data].toString() : ''}
-                  </td>
+      <div className="table-responsive" style={{ marginTop: '10px' }}>
+        {paginatedData.length === 0 ? (
+          <div className="text-center" style={{ marginTop: '150px' }}>
+            No data found
+          </div>
+        ) : (
+          <table className={`table ${className}`}>
+            <thead>
+              <tr>
+                {columns.map((column, index) => (
+                  <th key={index} style={{ cursor: 'pointer' }} onClick={() => handleSort(column.data)}>
+                    {column.title}
+                    {sortedColumn === column.data && (
+                      <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'down' : 'up'}`} style={{ marginLeft: '5px' }}></i>
+                    )}
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {paginatedData.map((item, rowIndex) => (
+                <React.Fragment key={rowIndex}>
+                  {renderRow(item)}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
       <div className="row">
         <div className="col-md-6">
-          <span>{`Showing ${startIndex + 1} to ${endIndex} of ${totalEntities} entries`}</span>
+          {totalEntities > 0 && (
+            <span>{`Showing ${startIndex + 1} to ${endIndex} of ${totalEntities} entries`}</span>
+          )}
         </div>
         <div className="col-md-6 d-flex justify-content-end">
           <nav aria-label="Page navigation">
@@ -144,7 +148,7 @@ const CommonDataTable = ({ data, columns, className, entitiesPerPageOptions, def
 
 CommonDataTable.defaultProps = {
   entitiesPerPageOptions: [5, 10, 25, 50, 100], // Default options for entities per page dropdown
-  defaultEntitiesPerPage: 10, // Default number of entities per page
+  defaultEntitiesPerPage: 5, // Default number of entities per page
 };
 
 export default CommonDataTable;

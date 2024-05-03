@@ -41,7 +41,7 @@ const ResetPassword = () => {
       const token1 = localStorage.getItem('adminToken');
 
       const response = await axios.post(
-        `http://nanabarsamaj-001-site1.htempurl.com/api/Admin/Auth/ResetPassword?token=${encodeURIComponent(token)}&password=${encodeURIComponent(password)}`,
+        `https://expodersfour-001-site1.ltempurl.com/api/Admin/Auth/ResetPassword?token=${encodeURIComponent(token)}&password=${encodeURIComponent(password)}`,
         {}, // Include the password in the request body
         {
           headers: {

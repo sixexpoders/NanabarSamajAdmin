@@ -1,11 +1,23 @@
   import React from 'react'
 
   const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
+  const page404 = React.lazy(() => import('./views/pages/page404/Page404'))
   const Users = React.lazy(() => import('./views/Home/Users/Users'))
-  const Location = React.lazy(() => import('./views/Home/Location/Location'))
-  const Info = React.lazy(() => import('./views/Home/Info/UserInfo'))
+  const pragatimandal = React.lazy(() => import('./views/Home/Pragatimandal/pragatimandal'))
+  const Besnu = React.lazy(() => import('./views/Home/Besnu/Besnu'))
+  const Career = React.lazy(() => import('./views/Home/Career/Career'))
+  const MemberAdd = React.lazy(() => import('./views/Home/Member/Add'))
+  const MemberUpdate = React.lazy(() => import('./views/Home/Member/Update'))
+  const UserInfo = React.lazy(() => import('./views/Home/Info/UserInfo'))
+  const NewsInfo = React.lazy(() => import('./views/Home/Info/NewsInfo'))
+  const BusinessInfo = React.lazy(() => import('./views/Home/Info/BusinessInfo'))
+  const BensuInfo = React.lazy(() => import('./views/Home/Info/BesnuInfo'))
+  const careerInfo = React.lazy(() => import('./views/Home/Info/CareerInfo'))
+  const MemberInfo = React.lazy(() => import('./views/Home/Info/MemberInfo'))
   const News = React.lazy(() => import('./views/Home/News/News'))
+  const business = React.lazy(() => import('./views/Home/Business/business'))
   const Profile = React.lazy(() => import('./views/Home/Profile/Profile'))
+  const ChangePassword = React.lazy(() => import('./views/pages/Change-Password'))
 
   // Base
   const Accordion = React.lazy(() => import('./views/base/accordion/Accordion'))
@@ -56,11 +68,24 @@
   const routes = [
     { path: '/', exact: true, name: 'Home'  },
     { path: '/dashboard', name: 'Dashboard', element: Dashboard },
+    // { path: '/home', name: 'Dashboard', element: Dashboard },
     { path: '/Home/Users', name: 'Users', element: Users },
-    { path: '/Home/Location', name: 'Location', element: Location },
+    { path: '/Home/Member', name: 'Users', element: Users },
+    { path: '/Home/Change-Password', name: 'Change-password', element: ChangePassword },
+    { path: '/Home/pragatimandal', name: 'pragatimandal', element: pragatimandal },
+    { path: '/Home/Besnu', name: 'Besnu', element: Besnu },
+    { path: '/Home/Career', name: 'Career', element: Career },
     { path: '/Home/Profile', name: 'Profile', element: Profile },
     { path: '/Home/News', name: 'News', element: News },
-    { path: '/Home/Info/:id', name: 'UserInfo', element: Info },
+    { path: '/Home/Business', name: 'business', element: business },
+    { path: '/Home/Member/:id', name: 'Add', element: MemberAdd },
+      { path: '/Home/Member/:userId/:memberId', name: 'MemberUpdate', element: MemberUpdate },
+      { path: '/Users/Details/:id', name: 'UserInfo', element: UserInfo },
+      { path: '/News/Details/:id', name: 'NewsInfo', element: NewsInfo },
+      { path: '/Besnu/Details/:id', name: 'BesnuInfo', element: BensuInfo },
+      { path: '/Career/Details/:id', name: 'CareerInfo', element: careerInfo },
+      { path: '/Member/Details/:id', name: 'MemberInfo', element: MemberInfo },
+      { path: '/Business/Details/:id', name: 'BusinessInfo', element: BusinessInfo },
     { path: '/base', name: 'Base', element: Cards, exact: true },
     { path: '/base/accordion', name: 'Accordion', element: Accordion },
     { path: '/base/breadcrumbs', name: 'Breadcrumbs', element: Breadcrumbs },
@@ -100,6 +125,7 @@
     { path: '/notifications/modals', name: 'Modals', element: Modals },
     { path: '/notifications/toasts', name: 'Toasts', element: Toasts },
     { path: '/widgets', name: 'Widgets', element: Widgets },
+
 
   ]
 

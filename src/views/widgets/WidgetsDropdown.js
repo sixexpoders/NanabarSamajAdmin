@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSpring, animated } from 'react-spring';
-import { Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const WidgetsDropdown = () => {
   const [counts, setCounts] = useState({
@@ -9,9 +9,7 @@ const WidgetsDropdown = () => {
     karobari_members: 0,
     inquiry: 0
   });
-  const handleMoreInfoClick = () => {
-    return <Navigate to="/Home/Users" />;
-  };
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -19,7 +17,7 @@ const WidgetsDropdown = () => {
         // Retrieve the token from local storage
         const token = localStorage.getItem('adminToken');
   
-        const response = await fetch('http://nanabarsamaj-001-site1.htempurl.com/api/admin/Lookup/GetCount', {
+        const response = await fetch('https://expodersfour-001-site1.ltempurl.com/api/admin/Lookup/GetCount', {
           method: 'GET',
           headers: {
             // Include the token in the Authorization header
@@ -90,7 +88,7 @@ const WidgetsDropdown = () => {
               </div>
               <div className="row mt-3">
                 <div className="col">
-                  <button className="btn btn-sm btn-outline-light" onClick={handleMoreInfoClick}>More Info</button>
+                  <Link to="/Home/Users" className="btn btn-sm btn-outline-light">More Info</Link>
                 </div>
               </div>
             </div>
