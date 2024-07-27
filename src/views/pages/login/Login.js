@@ -58,7 +58,7 @@ const Login = () => {
     };
 
     try {
-      const response = await axios.post('https://expodersfour-001-site1.ltempurl.com/api/Admin/Auth/Login', data);
+      const response = await axios.post('http://ydpatel18-001-site1.atempurl.com/api/Admin/Auth/Login', data);
 
       if (response.data.success) {
         setAdminLoggedIn(email);
